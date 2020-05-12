@@ -12,8 +12,9 @@
 namespace FOS\UserBundle\Tests\Security;
 
 use FOS\UserBundle\Security\EmailUserProvider;
+use PHPUnit\Framework\TestCase;
 
-class EmailUserProviderTest extends \PHPUnit_Framework_TestCase
+class EmailUserProviderTest extends TestCase
 {
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject
@@ -58,7 +59,7 @@ class EmailUserProviderTest extends \PHPUnit_Framework_TestCase
     public function testRefreshUserBy()
     {
         $user = $this->getMockBuilder('FOS\UserBundle\Model\User')
-                    ->setMethods(array('getId'))
+                    ->setMethods(['getId'])
                     ->getMock();
 
         $user->expects($this->once())
@@ -68,7 +69,7 @@ class EmailUserProviderTest extends \PHPUnit_Framework_TestCase
         $refreshedUser = $this->getMockBuilder('FOS\UserBundle\Model\UserInterface')->getMock();
         $this->userManager->expects($this->once())
             ->method('findUserBy')
-            ->with(array('id' => '123'))
+            ->with(['id' => '123'])
             ->will($this->returnValue($refreshedUser));
 
         $this->userManager->expects($this->atLeastOnce())

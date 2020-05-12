@@ -12,7 +12,7 @@
 namespace FOS\UserBundle\Command;
 
 use FOS\UserBundle\Util\UserManipulator;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -22,19 +22,28 @@ use Symfony\Component\Console\Question\Question;
 /**
  * @author Lenar Lõhmus <lenar@city.ee>
  */
-abstract class RoleCommand extends ContainerAwareCommand
+abstract class RoleCommand extends Command
 {
+    private $userManipulator;
+
+    public function __construct(UserManipulator $userManipulator)
+    {
+        parent::__construct();
+
+        $this->userManipulator = $userManipulator;
+    }
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
         $this
-            ->setDefinition(array(
+            ->setDefinition([
                 new InputArgument('username', InputArgument::REQUIRED, 'The username'),
                 new InputArgument('role', InputArgument::OPTIONAL, 'The role'),
                 new InputOption('super', null, InputOption::VALUE_NONE, 'Instead specifying role, use this to quickly add the super administrator role'),
-            ));
+            ]);
     }
 
     /**
@@ -54,18 +63,18 @@ abstract class RoleCommand extends ContainerAwareCommand
             throw new \RuntimeException('Not enough arguments.');
         }
 
-        $manipulator = $this->getContainer()->get('fos_user.util.user_manipulator');
+        $manipulator = $this->userManipulator;
         $this->executeRoleCommand($manipulator, $output, $username, $super, $role);
+
+        return 0;
     }
 
     /**
      * @see Command
      *
-     * @param UserManipulator $manipulator
-     * @param OutputInterface $output
-     * @param string          $username
-     * @param bool            $super
-     * @param string          $role
+     * @param string $username
+     * @param bool   $super
+     * @param string $role
      */
     abstract protected function executeRoleCommand(UserManipulator $manipulator, OutputInterface $output, $username, $super, $role);
 
@@ -74,7 +83,7 @@ abstract class RoleCommand extends ContainerAwareCommand
      */
     protected function interact(InputInterface $input, OutputInterface $output)
     {
-        $questions = array();
+        $questions = [];
 
         if (!$input->getArgument('username')) {
             $question = new Question('Please choose a username:');

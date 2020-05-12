@@ -1,6 +1,59 @@
 Changelog
 =========
 
+### 2.2.0 (2020-01-xx)
+
+* Marked all controllers final.
+* Added Mongolian translation.
+* Added an email provider.
+* Added a custom user checker.
+* Added PHP 7.4 support.
+* Removed fieldName attribute in MongoDB mapping.
+* Registration confirmation now redirects to login page if token is invalid.
+* User model will not rely on `AdvancedUserInterface` anymore.
+* Self-salting password encoders will not create a salt anymore.
+* FlashListener constructor now accepts `SessionInterface`.
+* Fixed `UserManagerInterface::updateUser` signature.
+* Fixed several Symfony deprecation notices.
+* Fixed several translations.
+
+### 2.1.2 (2018-03-08)
+
+* Fixed compatibility of controllers with Symfony 2.8
+
+### 2.1.1 (2018-02-20)
+
+* Fixed the check for the required session, to account for the fact it is not always required.
+
+### 2.1.0 (2018-02-16)
+
+* Dropped Symfony < 2.8 support.
+* Add Symfony 4 compatibility.
+* Refactored controllers and commands to use DI. Projects extending these classes will need to adapt their code (but should rather use supported extension points when possible).
+* Redirect to login when requesting resetting password with invalid token.
+* Added autocomplete hints for password inputs.
+* Fixed several incorrect Turkish translations.
+
+### 2.0.2 (2017-11-29)
+
+* Fix empty password in ChangePasswordFormType.
+* Fix empty password in ProfileFormType.
+* Introduced aliases for autowiring user and group managers.
+* Added Bengali translation.
+* Added Galician translation.
+* Updated Danish translation.
+* Updated Japanese translation.
+
+### 2.0.1 (2017-05-31)
+
+* Add SwiftMailer 6 compatibility.
+* Inject firewall `user_checker` into `LoginManager`.
+* Updated English translation.
+* Updated Estonian translation.
+* Updated Persian translation.
+* Updated Turkish translation.
+* Updated several docs.
+
 ### 2.0.0 (2017-03-29)
 
 * Removed default `fos_user.from_email` configuration values.
@@ -82,9 +135,11 @@ Changelog
 ### 1.3.8 (xxxx-xx-xx)
 
 * Fixed invalid `isAccountNonExpired` timestamp when year is 2038
+* Fixed validation of blank passwords
 * Removed any new lines in email subjects
 * Added trailing dot flash messages
 * Added trailing dot validator messages
+* Added Galician translation
 * Use `random_bytes` to generate tokens
 
 ### 1.3.7 (2016-11-22)

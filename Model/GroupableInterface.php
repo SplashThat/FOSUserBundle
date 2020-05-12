@@ -44,18 +44,14 @@ interface GroupableInterface
     /**
      * Add a group to the user groups.
      *
-     * @param GroupInterface $group
-     *
-     * @return self
+     * @return static
      */
     public function addGroup(GroupInterface $group);
 
     /**
      * Remove a group from the user groups.
      *
-     * @param GroupInterface $group
-     *
-     * @return self
+     * @return static
      */
     public function removeGroup(GroupInterface $group);
 }

@@ -12,22 +12,23 @@
 namespace FOS\UserBundle\Tests\Command;
 
 use FOS\UserBundle\Command\DemoteUserCommand;
+use FOS\UserBundle\Util\UserManipulator;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class DemoteUserCommandTest extends \PHPUnit_Framework_TestCase
+class DemoteUserCommandTest extends TestCase
 {
     public function testExecute()
     {
-        $commandTester = $this->createCommandTester($this->getContainer('user', 'role', false));
-        $exitCode = $commandTester->execute(array(
+        $commandTester = $this->createCommandTester($this->getManipulator('user', 'role', false));
+        $exitCode = $commandTester->execute([
             'username' => 'user',
             'role' => 'role',
-        ), array(
+        ], [
             'decorated' => false,
             'interactive' => false,
-        ));
+        ]);
 
         $this->assertSame(0, $exitCode, 'Returns 0 in case of success');
         $this->assertRegExp('/Role "role" has been removed from user "user"/', $commandTester->getDisplay());
@@ -38,7 +39,7 @@ class DemoteUserCommandTest extends \PHPUnit_Framework_TestCase
         $application = new Application();
 
         $helper = $this->getMockBuilder('Symfony\Component\Console\Helper\QuestionHelper')
-            ->setMethods(array('ask'))
+            ->setMethods(['ask'])
             ->getMock();
 
         $helper->expects($this->at(0))
@@ -50,23 +51,20 @@ class DemoteUserCommandTest extends \PHPUnit_Framework_TestCase
 
         $application->getHelperSet()->set($helper, 'question');
 
-        $commandTester = $this->createCommandTester($this->getContainer('user', 'role', false), $application);
-        $exitCode = $commandTester->execute(array(), array(
+        $commandTester = $this->createCommandTester($this->getManipulator('user', 'role', false), $application);
+        $exitCode = $commandTester->execute([], [
             'decorated' => false,
             'interactive' => true,
-        ));
+        ]);
 
         $this->assertSame(0, $exitCode, 'Returns 0 in case of success');
         $this->assertRegExp('/Role "role" has been removed from user "user"/', $commandTester->getDisplay());
     }
 
     /**
-     * @param ContainerInterface $container
-     * @param Application|null   $application
-     *
      * @return CommandTester
      */
-    private function createCommandTester(ContainerInterface $container, Application $application = null)
+    private function createCommandTester(UserManipulator $manipulator, Application $application = null)
     {
         if (null === $application) {
             $application = new Application();
@@ -74,8 +72,7 @@ class DemoteUserCommandTest extends \PHPUnit_Framework_TestCase
 
         $application->setAutoExit(false);
 
-        $command = new DemoteUserCommand();
-        $command->setContainer($container);
+        $command = new DemoteUserCommand($manipulator);
 
         $application->add($command);
 
@@ -89,10 +86,8 @@ class DemoteUserCommandTest extends \PHPUnit_Framework_TestCase
      *
      * @return mixed
      */
-    private function getContainer($username, $role, $super)
+    private function getManipulator($username, $role, $super)
     {
-        $container = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')->getMock();
-
         $manipulator = $this->getMockBuilder('FOS\UserBundle\Util\UserManipulator')
             ->disableOriginalConstructor()
             ->getMock();
@@ -113,12 +108,6 @@ class DemoteUserCommandTest extends \PHPUnit_Framework_TestCase
             ;
         }
 
-        $container
-            ->expects($this->once())
-            ->method('get')
-            ->with('fos_user.util.user_manipulator')
-            ->will($this->returnValue($manipulator));
-
-        return $container;
+        return $manipulator;
     }
 }

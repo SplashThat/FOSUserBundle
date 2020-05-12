@@ -12,9 +12,10 @@
 namespace FOS\UserBundle\Tests\Security;
 
 use FOS\UserBundle\Security\LoginManager;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
 
-class LoginManagerTest extends \PHPUnit_Framework_TestCase
+class LoginManagerTest extends TestCase
 {
     public function testLogInUserWithRequestStack()
     {
@@ -31,8 +32,7 @@ class LoginManagerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param string        $firewallName
-     * @param Response|null $response
+     * @param string $firewallName
      *
      * @return LoginManager
      */
@@ -86,7 +86,7 @@ class LoginManagerTest extends \PHPUnit_Framework_TestCase
         $user
             ->expects($this->once())
             ->method('getRoles')
-            ->will($this->returnValue(array('ROLE_USER')));
+            ->will($this->returnValue(['ROLE_USER']));
 
         return $user;
     }

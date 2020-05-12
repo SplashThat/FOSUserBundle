@@ -12,14 +12,17 @@
 namespace FOS\UserBundle\Tests\Model;
 
 use FOS\UserBundle\Model\UserManager;
+use PHPUnit\Framework\TestCase;
 
-class UserManagerTest extends \PHPUnit_Framework_TestCase
+class UserManagerTest extends TestCase
 {
-    /**
-     * @var UserManager
-     */
+    /** @var UserManager|\PHPUnit_Framework_MockObject_MockObject */
     private $manager;
+
+    /** @var \PHPUnit_Framework_MockObject_MockObject */
     private $passwordUpdater;
+
+    /** @var \PHPUnit_Framework_MockObject_MockObject */
     private $fieldsUpdater;
 
     protected function setUp()
@@ -29,10 +32,10 @@ class UserManagerTest extends \PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->manager = $this->getUserManager(array(
+        $this->manager = $this->getUserManager([
             $this->passwordUpdater,
             $this->fieldsUpdater,
-        ));
+        ]);
     }
 
     public function testUpdateCanonicalFields()
@@ -61,7 +64,7 @@ class UserManagerTest extends \PHPUnit_Framework_TestCase
     {
         $this->manager->expects($this->once())
             ->method('findUserBy')
-            ->with($this->equalTo(array('usernameCanonical' => 'jack')));
+            ->with($this->equalTo(['usernameCanonical' => 'jack']));
         $this->fieldsUpdater->expects($this->once())
             ->method('canonicalizeUsername')
             ->with('jack')
@@ -74,7 +77,7 @@ class UserManagerTest extends \PHPUnit_Framework_TestCase
     {
         $this->manager->expects($this->once())
             ->method('findUserBy')
-            ->with($this->equalTo(array('usernameCanonical' => 'jack')));
+            ->with($this->equalTo(['usernameCanonical' => 'jack']));
         $this->fieldsUpdater->expects($this->once())
             ->method('canonicalizeUsername')
             ->with('JaCk')
@@ -87,7 +90,7 @@ class UserManagerTest extends \PHPUnit_Framework_TestCase
     {
         $this->manager->expects($this->once())
             ->method('findUserBy')
-            ->with($this->equalTo(array('emailCanonical' => 'jack@email.org')));
+            ->with($this->equalTo(['emailCanonical' => 'jack@email.org']));
         $this->fieldsUpdater->expects($this->once())
             ->method('canonicalizeEmail')
             ->with('jack@email.org')
@@ -100,7 +103,7 @@ class UserManagerTest extends \PHPUnit_Framework_TestCase
     {
         $this->manager->expects($this->once())
             ->method('findUserBy')
-            ->with($this->equalTo(array('emailCanonical' => 'jack@email.org')));
+            ->with($this->equalTo(['emailCanonical' => 'jack@email.org']));
         $this->fieldsUpdater->expects($this->once())
             ->method('canonicalizeEmail')
             ->with('JaCk@EmAiL.oRg')
@@ -113,7 +116,7 @@ class UserManagerTest extends \PHPUnit_Framework_TestCase
     {
         $this->manager->expects($this->once())
             ->method('findUserBy')
-            ->with($this->equalTo(array('usernameCanonical' => 'jack')));
+            ->with($this->equalTo(['usernameCanonical' => 'jack']));
         $this->fieldsUpdater->expects($this->once())
             ->method('canonicalizeUsername')
             ->with('JaCk')
@@ -126,13 +129,42 @@ class UserManagerTest extends \PHPUnit_Framework_TestCase
     {
         $this->manager->expects($this->once())
             ->method('findUserBy')
-            ->with($this->equalTo(array('emailCanonical' => 'jack@email.org')));
+            ->with($this->equalTo(['emailCanonical' => 'jack@email.org']))
+            ->willReturn($this->getUser());
         $this->fieldsUpdater->expects($this->once())
             ->method('canonicalizeEmail')
             ->with('JaCk@EmAiL.oRg')
             ->will($this->returnValue('jack@email.org'));
 
         $this->manager->findUserByUsernameOrEmail('JaCk@EmAiL.oRg');
+    }
+
+    public function testFindUserByUsernameOrEmailWithUsernameThatLooksLikeEmail()
+    {
+        $usernameThatLooksLikeEmail = 'bob@example.com';
+        $user = $this->getUser();
+
+        $this->manager->expects($this->at(0))
+            ->method('findUserBy')
+            ->with($this->equalTo(['emailCanonical' => $usernameThatLooksLikeEmail]))
+            ->will($this->returnValue(null));
+        $this->fieldsUpdater->expects($this->once())
+            ->method('canonicalizeEmail')
+            ->with($usernameThatLooksLikeEmail)
+            ->willReturn($usernameThatLooksLikeEmail);
+
+        $this->manager->expects($this->at(1))
+            ->method('findUserBy')
+            ->with($this->equalTo(['usernameCanonical' => $usernameThatLooksLikeEmail]))
+            ->will($this->returnValue($user));
+        $this->fieldsUpdater->expects($this->once())
+            ->method('canonicalizeUsername')
+            ->with($usernameThatLooksLikeEmail)
+            ->willReturn($usernameThatLooksLikeEmail);
+
+        $actualUser = $this->manager->findUserByUsernameOrEmail($usernameThatLooksLikeEmail);
+
+        $this->assertSame($user, $actualUser);
     }
 
     /**
@@ -145,8 +177,6 @@ class UserManagerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param array $args
-     *
      * @return mixed
      */
     private function getUserManager(array $args)

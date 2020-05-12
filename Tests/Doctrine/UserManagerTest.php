@@ -13,8 +13,9 @@ namespace FOS\UserBundle\Tests\Doctrine;
 
 use FOS\UserBundle\Doctrine\UserManager;
 use FOS\UserBundle\Model\User;
+use PHPUnit\Framework\TestCase;
 
-class UserManagerTest extends \PHPUnit_Framework_TestCase
+class UserManagerTest extends TestCase
 {
     const USER_CLASS = 'FOS\UserBundle\Tests\Doctrine\DummyUser';
 
@@ -70,15 +71,15 @@ class UserManagerTest extends \PHPUnit_Framework_TestCase
 
     public function testFindUserBy()
     {
-        $crit = array('foo' => 'bar');
-        $this->repository->expects($this->once())->method('findOneBy')->with($this->equalTo($crit))->will($this->returnValue(array()));
+        $crit = ['foo' => 'bar'];
+        $this->repository->expects($this->once())->method('findOneBy')->with($this->equalTo($crit))->will($this->returnValue([]));
 
         $this->userManager->findUserBy($crit);
     }
 
     public function testFindUsers()
     {
-        $this->repository->expects($this->once())->method('findAll')->will($this->returnValue(array()));
+        $this->repository->expects($this->once())->method('findAll')->will($this->returnValue([]));
 
         $this->userManager->findUsers();
     }

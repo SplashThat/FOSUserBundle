@@ -13,7 +13,6 @@ namespace FOS\UserBundle\Tests\Form\Type;
 
 use FOS\UserBundle\Form\Type\ChangePasswordFormType;
 use FOS\UserBundle\Tests\TestUser;
-use FOS\UserBundle\Util\LegacyFormHelper;
 
 class ChangePasswordFormTypeTest extends ValidatorExtensionTypeTestCase
 {
@@ -22,14 +21,14 @@ class ChangePasswordFormTypeTest extends ValidatorExtensionTypeTestCase
         $user = new TestUser();
         $user->setPassword('foo');
 
-        $form = $this->factory->create(LegacyFormHelper::getType('FOS\UserBundle\Form\Type\ChangePasswordFormType'), $user);
-        $formData = array(
+        $form = $this->factory->create(ChangePasswordFormType::class, $user);
+        $formData = [
             'current_password' => 'foo',
-            'plainPassword' => array(
+            'plainPassword' => [
                 'first' => 'bar',
                 'second' => 'bar',
-            ),
-        );
+            ],
+        ];
         $form->submit($formData);
 
         $this->assertTrue($form->isSynchronized());
@@ -42,8 +41,8 @@ class ChangePasswordFormTypeTest extends ValidatorExtensionTypeTestCase
      */
     protected function getTypes()
     {
-        return array_merge(parent::getTypes(), array(
+        return array_merge(parent::getTypes(), [
             new ChangePasswordFormType('FOS\UserBundle\Tests\TestUser'),
-        ));
+        ]);
     }
 }

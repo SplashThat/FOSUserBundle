@@ -28,11 +28,12 @@ abstract class GroupManager implements GroupManagerInterface
 
         return new $class($name);
     }
+
     /**
      * {@inheritdoc}
      */
     public function findGroupByName($name)
     {
-        return $this->findGroupBy(array('name' => $name));
+        return $this->findGroupBy(['name' => $name]);
     }
 }

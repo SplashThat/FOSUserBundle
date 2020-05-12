@@ -33,10 +33,7 @@ class UserManager extends BaseUserManager
     /**
      * Constructor.
      *
-     * @param PasswordUpdaterInterface $passwordUpdater
-     * @param CanonicalFieldsUpdater   $canonicalFieldsUpdater
-     * @param ObjectManager            $om
-     * @param string                   $class
+     * @param string $class
      */
     public function __construct(PasswordUpdaterInterface $passwordUpdater, CanonicalFieldsUpdater $canonicalFieldsUpdater, ObjectManager $om, $class)
     {
@@ -44,14 +41,6 @@ class UserManager extends BaseUserManager
 
         $this->objectManager = $om;
         $this->class = $class;
-    }
-
-    /**
-     * @return ObjectRepository
-     */
-    protected function getRepository()
-    {
-        return $this->objectManager->getRepository($this->getClass());
     }
 
     /**
@@ -112,5 +101,13 @@ class UserManager extends BaseUserManager
         if ($andFlush) {
             $this->objectManager->flush();
         }
+    }
+
+    /**
+     * @return ObjectRepository
+     */
+    protected function getRepository()
+    {
+        return $this->objectManager->getRepository($this->getClass());
     }
 }

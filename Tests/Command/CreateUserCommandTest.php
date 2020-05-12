@@ -12,23 +12,24 @@
 namespace FOS\UserBundle\Tests\Command;
 
 use FOS\UserBundle\Command\CreateUserCommand;
+use FOS\UserBundle\Util\UserManipulator;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class CreateUserCommandTest extends \PHPUnit_Framework_TestCase
+class CreateUserCommandTest extends TestCase
 {
     public function testExecute()
     {
-        $commandTester = $this->createCommandTester($this->getContainer('user', 'pass', 'email', true, false));
-        $exitCode = $commandTester->execute(array(
+        $commandTester = $this->createCommandTester($this->getManipulator('user', 'pass', 'email', true, false));
+        $exitCode = $commandTester->execute([
             'username' => 'user',
             'email' => 'email',
             'password' => 'pass',
-        ), array(
+        ], [
             'decorated' => false,
             'interactive' => false,
-        ));
+        ]);
 
         $this->assertSame(0, $exitCode, 'Returns 0 in case of success');
         $this->assertRegExp('/Created user user/', $commandTester->getDisplay());
@@ -39,7 +40,7 @@ class CreateUserCommandTest extends \PHPUnit_Framework_TestCase
         $application = new Application();
 
         $helper = $this->getMockBuilder('Symfony\Component\Console\Helper\QuestionHelper')
-            ->setMethods(array('ask'))
+            ->setMethods(['ask'])
             ->getMock();
 
         $helper->expects($this->at(0))
@@ -57,24 +58,21 @@ class CreateUserCommandTest extends \PHPUnit_Framework_TestCase
         $application->getHelperSet()->set($helper, 'question');
 
         $commandTester = $this->createCommandTester(
-            $this->getContainer('user', 'pass', 'email', true, false), $application
+            $this->getManipulator('user', 'pass', 'email', true, false), $application
         );
-        $exitCode = $commandTester->execute(array(), array(
+        $exitCode = $commandTester->execute([], [
             'decorated' => false,
             'interactive' => true,
-        ));
+        ]);
 
         $this->assertSame(0, $exitCode, 'Returns 0 in case of success');
         $this->assertRegExp('/Created user user/', $commandTester->getDisplay());
     }
 
     /**
-     * @param ContainerInterface $container
-     * @param Application|null   $application
-     *
      * @return CommandTester
      */
-    private function createCommandTester(ContainerInterface $container, Application $application = null)
+    private function createCommandTester(UserManipulator $manipulator, Application $application = null)
     {
         if (null === $application) {
             $application = new Application();
@@ -82,8 +80,7 @@ class CreateUserCommandTest extends \PHPUnit_Framework_TestCase
 
         $application->setAutoExit(false);
 
-        $command = new CreateUserCommand();
-        $command->setContainer($container);
+        $command = new CreateUserCommand($manipulator);
 
         $application->add($command);
 
@@ -99,10 +96,8 @@ class CreateUserCommandTest extends \PHPUnit_Framework_TestCase
      *
      * @return mixed
      */
-    private function getContainer($username, $password, $email, $active, $superadmin)
+    private function getManipulator($username, $password, $email, $active, $superadmin)
     {
-        $container = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')->getMock();
-
         $manipulator = $this->getMockBuilder('FOS\UserBundle\Util\UserManipulator')
             ->disableOriginalConstructor()
             ->getMock();
@@ -113,12 +108,6 @@ class CreateUserCommandTest extends \PHPUnit_Framework_TestCase
             ->with($username, $password, $email, $active, $superadmin)
         ;
 
-        $container
-            ->expects($this->once())
-            ->method('get')
-            ->with('fos_user.util.user_manipulator')
-            ->will($this->returnValue($manipulator));
-
-        return $container;
+        return $manipulator;
     }
 }

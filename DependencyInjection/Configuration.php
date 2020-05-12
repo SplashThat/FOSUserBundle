@@ -11,7 +11,7 @@
 
 namespace FOS\UserBundle\DependencyInjection;
 
-use FOS\UserBundle\Util\LegacyFormHelper;
+use FOS\UserBundle\Form\Type;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -31,10 +31,15 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('fos_user');
+        $treeBuilder = new TreeBuilder('fos_user');
 
-        $supportedDrivers = array('orm', 'mongodb', 'couchdb', 'custom');
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            $rootNode = $treeBuilder->root('fos_user');
+        }
+
+        $supportedDrivers = ['orm', 'mongodb', 'couchdb', 'custom'];
 
         $rootNode
             ->children()
@@ -86,9 +91,6 @@ class Configuration implements ConfigurationInterface
         return $treeBuilder;
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addProfileSection(ArrayNodeDefinition $node)
     {
         $node
@@ -101,11 +103,11 @@ class Configuration implements ConfigurationInterface
                             ->addDefaultsIfNotSet()
                             ->fixXmlConfig('validation_group')
                             ->children()
-                                ->scalarNode('type')->defaultValue(LegacyFormHelper::getType('FOS\UserBundle\Form\Type\ProfileFormType'))->end()
+                                ->scalarNode('type')->defaultValue(Type\ProfileFormType::class)->end()
                                 ->scalarNode('name')->defaultValue('fos_user_profile_form')->end()
                                 ->arrayNode('validation_groups')
                                     ->prototype('scalar')->end()
-                                    ->defaultValue(array('Profile', 'Default'))
+                                    ->defaultValue(['Profile', 'Default'])
                                 ->end()
                             ->end()
                         ->end()
@@ -114,9 +116,6 @@ class Configuration implements ConfigurationInterface
             ->end();
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addRegistrationSection(ArrayNodeDefinition $node)
     {
         $node
@@ -142,11 +141,11 @@ class Configuration implements ConfigurationInterface
                         ->arrayNode('form')
                             ->addDefaultsIfNotSet()
                             ->children()
-                                ->scalarNode('type')->defaultValue(LegacyFormHelper::getType('FOS\UserBundle\Form\Type\RegistrationFormType'))->end()
+                                ->scalarNode('type')->defaultValue(Type\RegistrationFormType::class)->end()
                                 ->scalarNode('name')->defaultValue('fos_user_registration_form')->end()
                                 ->arrayNode('validation_groups')
                                     ->prototype('scalar')->end()
-                                    ->defaultValue(array('Registration', 'Default'))
+                                    ->defaultValue(['Registration', 'Default'])
                                 ->end()
                             ->end()
                         ->end()
@@ -155,9 +154,6 @@ class Configuration implements ConfigurationInterface
             ->end();
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addResettingSection(ArrayNodeDefinition $node)
     {
         $node
@@ -184,11 +180,11 @@ class Configuration implements ConfigurationInterface
                         ->arrayNode('form')
                             ->addDefaultsIfNotSet()
                             ->children()
-                                ->scalarNode('type')->defaultValue(LegacyFormHelper::getType('FOS\UserBundle\Form\Type\ResettingFormType'))->end()
+                                ->scalarNode('type')->defaultValue(Type\ResettingFormType::class)->end()
                                 ->scalarNode('name')->defaultValue('fos_user_resetting_form')->end()
                                 ->arrayNode('validation_groups')
                                     ->prototype('scalar')->end()
-                                    ->defaultValue(array('ResetPassword', 'Default'))
+                                    ->defaultValue(['ResetPassword', 'Default'])
                                 ->end()
                             ->end()
                         ->end()
@@ -197,9 +193,6 @@ class Configuration implements ConfigurationInterface
             ->end();
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addChangePasswordSection(ArrayNodeDefinition $node)
     {
         $node
@@ -211,11 +204,11 @@ class Configuration implements ConfigurationInterface
                         ->arrayNode('form')
                             ->addDefaultsIfNotSet()
                             ->children()
-                                ->scalarNode('type')->defaultValue(LegacyFormHelper::getType('FOS\UserBundle\Form\Type\ChangePasswordFormType'))->end()
+                                ->scalarNode('type')->defaultValue(Type\ChangePasswordFormType::class)->end()
                                 ->scalarNode('name')->defaultValue('fos_user_change_password_form')->end()
                                 ->arrayNode('validation_groups')
                                     ->prototype('scalar')->end()
-                                    ->defaultValue(array('ChangePassword', 'Default'))
+                                    ->defaultValue(['ChangePassword', 'Default'])
                                 ->end()
                             ->end()
                         ->end()
@@ -224,9 +217,6 @@ class Configuration implements ConfigurationInterface
             ->end();
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addServiceSection(ArrayNodeDefinition $node)
     {
         $node
@@ -246,9 +236,6 @@ class Configuration implements ConfigurationInterface
             ->end();
     }
 
-    /**
-     * @param ArrayNodeDefinition $node
-     */
     private function addGroupSection(ArrayNodeDefinition $node)
     {
         $node
@@ -262,11 +249,11 @@ class Configuration implements ConfigurationInterface
                             ->addDefaultsIfNotSet()
                             ->fixXmlConfig('validation_group')
                             ->children()
-                                ->scalarNode('type')->defaultValue(LegacyFormHelper::getType('FOS\UserBundle\Form\Type\GroupFormType'))->end()
+                                ->scalarNode('type')->defaultValue(Type\GroupFormType::class)->end()
                                 ->scalarNode('name')->defaultValue('fos_user_group_form')->end()
                                 ->arrayNode('validation_groups')
                                     ->prototype('scalar')->end()
-                                    ->defaultValue(array('Registration', 'Default'))
+                                    ->defaultValue(['Registration', 'Default'])
                                 ->end()
                             ->end()
                         ->end()
