@@ -20,6 +20,10 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+/**
+ * @internal
+ * @final
+ */
 class EmailConfirmationListener implements EventSubscriberInterface
 {
     private $mailer;
@@ -38,10 +42,7 @@ class EmailConfirmationListener implements EventSubscriberInterface
         $this->session = $session;
     }
 
-    /**
-     * @return array
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             FOSUserEvents::REGISTRATION_SUCCESS => 'onRegistrationSuccess',

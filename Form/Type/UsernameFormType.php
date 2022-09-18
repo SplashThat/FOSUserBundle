@@ -20,6 +20,8 @@ use Symfony\Component\Form\FormBuilderInterface;
  * Form type for representing a UserInterface instance by its username string.
  *
  * @author Thibault Duplessis <thibault.duplessis@gmail.com>
+ *
+ * @final
  */
 class UsernameFormType extends AbstractType
 {
@@ -47,25 +49,15 @@ class UsernameFormType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function getParent()
+    public function getParent(): ?string
     {
         return TextType::class;
-    }
-
-    // BC for SF < 3.0
-
-    /**
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->getBlockPrefix();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getBlockPrefix()
+    public function getBlockPrefix(): string
     {
         return 'fos_user_username';
     }

@@ -16,30 +16,38 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Flex\Recipe;
 
 /**
- * Checks to see if the session service exists.
+ * Checks to see if the mailer service exists.
  *
  * @author Ryan Weaver <ryan@knpuniversity.com>
  *
  * @internal
  * @final
  */
-class CheckForSessionPass implements CompilerPassInterface
+class CheckForSwiftMailerPass implements CompilerPassInterface
 {
     /**
      * {@inheritdoc}
      */
     public function process(ContainerBuilder $container)
     {
-        if ($container->hasParameter('fos_user.session_needed') && !$container->has('session.storage.factory') && !$container->has('session')) {
-            $message = 'FOSUserBundle requires the "session" to be available for the enabled features.';
+        // if the mailer isn't needed, then no error needed
+        if (!$container->has('fos_user.mailer')) {
+            return;
+        }
+
+        // the mailer exists, so all is good
+        if ($container->has('swiftmailer.mailer')) {
+            return;
+        }
+
+        if ($container->findDefinition('fos_user.mailer')->hasTag('fos_user.requires_swift')) {
+            $message = 'A feature you activated in FOSUserBundle requires the "mailer" service to be available.';
 
             if (class_exists(Recipe::class)) {
-                $message .= ' Uncomment the "session" section in "config/packages/framework.yaml" to activate it.';
+                $message .= ' Run "composer require swiftmailer-bundle" to install SwiftMailer or configure a different mailer in "config/packages/fos_user.yaml".';
             }
 
             throw new \LogicException($message);
         }
-
-        $container->getParameterBag()->remove('fos_user.session_needed');
     }
 }

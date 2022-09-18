@@ -18,6 +18,9 @@ use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @final
+ */
 class RegistrationFormType extends AbstractType
 {
     /**
@@ -67,20 +70,10 @@ class RegistrationFormType extends AbstractType
         ]);
     }
 
-    // BC for SF < 3.0
-
     /**
      * {@inheritdoc}
      */
-    public function getName()
-    {
-        return $this->getBlockPrefix();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBlockPrefix()
+    public function getBlockPrefix(): string
     {
         return 'fos_user_registration';
     }

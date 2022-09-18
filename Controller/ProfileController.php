@@ -11,6 +11,7 @@
 
 namespace FOS\UserBundle\Controller;
 
+use FOS\UserBundle\CompatibilityUtil;
 use FOS\UserBundle\Event\FilterUserResponseEvent;
 use FOS\UserBundle\Event\FormEvent;
 use FOS\UserBundle\Event\GetResponseUserEvent;
@@ -18,12 +19,12 @@ use FOS\UserBundle\Form\Factory\FactoryInterface;
 use FOS\UserBundle\FOSUserEvents;
 use FOS\UserBundle\Model\UserInterface;
 use FOS\UserBundle\Model\UserManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Controller managing the user profile.
@@ -32,7 +33,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
  *
  * @final
  */
-class ProfileController extends Controller
+class ProfileController extends AbstractController
 {
     private $eventDispatcher;
     private $formFactory;
@@ -40,7 +41,7 @@ class ProfileController extends Controller
 
     public function __construct(EventDispatcherInterface $eventDispatcher, FactoryInterface $formFactory, UserManagerInterface $userManager)
     {
-        $this->eventDispatcher = $eventDispatcher;
+        $this->eventDispatcher = CompatibilityUtil::upgradeEventDispatcher($eventDispatcher);
         $this->formFactory = $formFactory;
         $this->userManager = $userManager;
     }
@@ -48,7 +49,7 @@ class ProfileController extends Controller
     /**
      * Show the user.
      */
-    public function showAction()
+    public function showAction(): Response
     {
         $user = $this->getUser();
         if (!is_object($user) || !$user instanceof UserInterface) {
@@ -62,10 +63,8 @@ class ProfileController extends Controller
 
     /**
      * Edit the user.
-     *
-     * @return Response
      */
-    public function editAction(Request $request)
+    public function editAction(Request $request): Response
     {
         $user = $this->getUser();
         if (!is_object($user) || !$user instanceof UserInterface) {
@@ -73,7 +72,7 @@ class ProfileController extends Controller
         }
 
         $event = new GetResponseUserEvent($user, $request);
-        $this->eventDispatcher->dispatch(FOSUserEvents::PROFILE_EDIT_INITIALIZE, $event);
+        $this->eventDispatcher->dispatch($event, FOSUserEvents::PROFILE_EDIT_INITIALIZE);
 
         if (null !== $event->getResponse()) {
             return $event->getResponse();
@@ -86,7 +85,7 @@ class ProfileController extends Controller
 
         if ($form->isSubmitted() && $form->isValid()) {
             $event = new FormEvent($form, $request);
-            $this->eventDispatcher->dispatch(FOSUserEvents::PROFILE_EDIT_SUCCESS, $event);
+            $this->eventDispatcher->dispatch($event, FOSUserEvents::PROFILE_EDIT_SUCCESS);
 
             $this->userManager->updateUser($user);
 
@@ -95,7 +94,7 @@ class ProfileController extends Controller
                 $response = new RedirectResponse($url);
             }
 
-            $this->eventDispatcher->dispatch(FOSUserEvents::PROFILE_EDIT_COMPLETED, new FilterUserResponseEvent($user, $request, $response));
+            $this->eventDispatcher->dispatch(new FilterUserResponseEvent($user, $request, $response), FOSUserEvents::PROFILE_EDIT_COMPLETED);
 
             return $response;
         }

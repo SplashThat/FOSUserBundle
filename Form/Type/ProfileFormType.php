@@ -19,6 +19,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
+/**
+ * @final
+ */
 class ProfileFormType extends AbstractType
 {
     /**
@@ -74,20 +77,10 @@ class ProfileFormType extends AbstractType
         ]);
     }
 
-    // BC for SF < 3.0
-
     /**
      * {@inheritdoc}
      */
-    public function getName()
-    {
-        return $this->getBlockPrefix();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBlockPrefix()
+    public function getBlockPrefix(): string
     {
         return 'fos_user_profile';
     }

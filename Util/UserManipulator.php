@@ -11,18 +11,23 @@
 
 namespace FOS\UserBundle\Util;
 
+use FOS\UserBundle\CompatibilityUtil;
 use FOS\UserBundle\Event\UserEvent;
 use FOS\UserBundle\FOSUserEvents;
 use FOS\UserBundle\Model\UserInterface;
 use FOS\UserBundle\Model\UserManagerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Executes some manipulations on the users.
  *
  * @author Christophe Coevoet <stof@notk.org>
  * @author Luis Cordova <cordoval@gmail.com>
+ *
+ * @internal
+ * @final
  */
 class UserManipulator
 {
@@ -49,7 +54,7 @@ class UserManipulator
     public function __construct(UserManagerInterface $userManager, EventDispatcherInterface $dispatcher, RequestStack $requestStack)
     {
         $this->userManager = $userManager;
-        $this->dispatcher = $dispatcher;
+        $this->dispatcher = CompatibilityUtil::upgradeEventDispatcher($dispatcher);
         $this->requestStack = $requestStack;
     }
 
@@ -61,10 +66,8 @@ class UserManipulator
      * @param string $email
      * @param bool   $active
      * @param bool   $superadmin
-     *
-     * @return \FOS\UserBundle\Model\UserInterface
      */
-    public function create($username, $password, $email, $active, $superadmin)
+    public function create($username, $password, $email, $active, $superadmin): UserInterface
     {
         $user = $this->userManager->createUser();
         $user->setUsername($username);
@@ -75,7 +78,7 @@ class UserManipulator
         $this->userManager->updateUser($user);
 
         $event = new UserEvent($user, $this->getRequest());
-        $this->dispatcher->dispatch(FOSUserEvents::USER_CREATED, $event);
+        $this->dispatcher->dispatch($event, FOSUserEvents::USER_CREATED);
 
         return $user;
     }
@@ -92,7 +95,7 @@ class UserManipulator
         $this->userManager->updateUser($user);
 
         $event = new UserEvent($user, $this->getRequest());
-        $this->dispatcher->dispatch(FOSUserEvents::USER_ACTIVATED, $event);
+        $this->dispatcher->dispatch($event, FOSUserEvents::USER_ACTIVATED);
     }
 
     /**
@@ -107,7 +110,7 @@ class UserManipulator
         $this->userManager->updateUser($user);
 
         $event = new UserEvent($user, $this->getRequest());
-        $this->dispatcher->dispatch(FOSUserEvents::USER_DEACTIVATED, $event);
+        $this->dispatcher->dispatch($event, FOSUserEvents::USER_DEACTIVATED);
     }
 
     /**
@@ -123,7 +126,7 @@ class UserManipulator
         $this->userManager->updateUser($user);
 
         $event = new UserEvent($user, $this->getRequest());
-        $this->dispatcher->dispatch(FOSUserEvents::USER_PASSWORD_CHANGED, $event);
+        $this->dispatcher->dispatch($event, FOSUserEvents::USER_PASSWORD_CHANGED);
     }
 
     /**
@@ -138,7 +141,7 @@ class UserManipulator
         $this->userManager->updateUser($user);
 
         $event = new UserEvent($user, $this->getRequest());
-        $this->dispatcher->dispatch(FOSUserEvents::USER_PROMOTED, $event);
+        $this->dispatcher->dispatch($event, FOSUserEvents::USER_PROMOTED);
     }
 
     /**
@@ -153,7 +156,7 @@ class UserManipulator
         $this->userManager->updateUser($user);
 
         $event = new UserEvent($user, $this->getRequest());
-        $this->dispatcher->dispatch(FOSUserEvents::USER_DEMOTED, $event);
+        $this->dispatcher->dispatch($event, FOSUserEvents::USER_DEMOTED);
     }
 
     /**
@@ -164,7 +167,7 @@ class UserManipulator
      *
      * @return bool true if role was added, false if user already had the role
      */
-    public function addRole($username, $role)
+    public function addRole($username, $role): bool
     {
         $user = $this->findUserByUsernameOrThrowException($username);
         if ($user->hasRole($role)) {
@@ -184,7 +187,7 @@ class UserManipulator
      *
      * @return bool true if role was removed, false if user didn't have the role
      */
-    public function removeRole($username, $role)
+    public function removeRole($username, $role): bool
     {
         $user = $this->findUserByUsernameOrThrowException($username);
         if (!$user->hasRole($role)) {
@@ -202,10 +205,8 @@ class UserManipulator
      * @param string $username
      *
      * @throws \InvalidArgumentException When user does not exist
-     *
-     * @return UserInterface
      */
-    private function findUserByUsernameOrThrowException($username)
+    private function findUserByUsernameOrThrowException($username): UserInterface
     {
         $user = $this->userManager->findUserByUsername($username);
 
@@ -216,10 +217,7 @@ class UserManipulator
         return $user;
     }
 
-    /**
-     * @return Request
-     */
-    private function getRequest()
+    private function getRequest(): ?Request
     {
         return $this->requestStack->getCurrentRequest();
     }

@@ -11,6 +11,7 @@
 
 namespace FOS\UserBundle\Controller;
 
+use FOS\UserBundle\CompatibilityUtil;
 use FOS\UserBundle\Event\FilterUserResponseEvent;
 use FOS\UserBundle\Event\FormEvent;
 use FOS\UserBundle\Event\GetResponseUserEvent;
@@ -18,12 +19,12 @@ use FOS\UserBundle\Form\Factory\FactoryInterface;
 use FOS\UserBundle\FOSUserEvents;
 use FOS\UserBundle\Model\UserInterface;
 use FOS\UserBundle\Model\UserManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Controller managing the password change.
@@ -33,7 +34,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
  *
  * @final
  */
-class ChangePasswordController extends Controller
+class ChangePasswordController extends AbstractController
 {
     private $eventDispatcher;
     private $formFactory;
@@ -41,17 +42,15 @@ class ChangePasswordController extends Controller
 
     public function __construct(EventDispatcherInterface $eventDispatcher, FactoryInterface $formFactory, UserManagerInterface $userManager)
     {
-        $this->eventDispatcher = $eventDispatcher;
+        $this->eventDispatcher = CompatibilityUtil::upgradeEventDispatcher($eventDispatcher);
         $this->formFactory = $formFactory;
         $this->userManager = $userManager;
     }
 
     /**
      * Change user password.
-     *
-     * @return Response
      */
-    public function changePasswordAction(Request $request)
+    public function changePasswordAction(Request $request): Response
     {
         $user = $this->getUser();
         if (!is_object($user) || !$user instanceof UserInterface) {
@@ -59,7 +58,7 @@ class ChangePasswordController extends Controller
         }
 
         $event = new GetResponseUserEvent($user, $request);
-        $this->eventDispatcher->dispatch(FOSUserEvents::CHANGE_PASSWORD_INITIALIZE, $event);
+        $this->eventDispatcher->dispatch($event, FOSUserEvents::CHANGE_PASSWORD_INITIALIZE);
 
         if (null !== $event->getResponse()) {
             return $event->getResponse();
@@ -72,7 +71,7 @@ class ChangePasswordController extends Controller
 
         if ($form->isSubmitted() && $form->isValid()) {
             $event = new FormEvent($form, $request);
-            $this->eventDispatcher->dispatch(FOSUserEvents::CHANGE_PASSWORD_SUCCESS, $event);
+            $this->eventDispatcher->dispatch($event, FOSUserEvents::CHANGE_PASSWORD_SUCCESS);
 
             $this->userManager->updateUser($user);
 
@@ -81,7 +80,7 @@ class ChangePasswordController extends Controller
                 $response = new RedirectResponse($url);
             }
 
-            $this->eventDispatcher->dispatch(FOSUserEvents::CHANGE_PASSWORD_COMPLETED, new FilterUserResponseEvent($user, $request, $response));
+            $this->eventDispatcher->dispatch(new FilterUserResponseEvent($user, $request, $response), FOSUserEvents::CHANGE_PASSWORD_COMPLETED);
 
             return $response;
         }

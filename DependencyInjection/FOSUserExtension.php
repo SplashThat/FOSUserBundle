@@ -11,6 +11,7 @@
 
 namespace FOS\UserBundle\DependencyInjection;
 
+use FOS\UserBundle\Mailer\MailerInterface;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Alias;
@@ -19,6 +20,10 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
+/**
+ * @internal
+ * @final
+ */
 class FOSUserExtension extends Extension
 {
     /**
@@ -78,6 +83,10 @@ class FOSUserExtension extends Extension
             $container->removeDefinition('fos_user.listener.authentication');
         }
 
+        if (!$config['register_last_login']) {
+            $container->removeDefinition('fos_user.security.interactive_login_listener');
+        }
+
         if ($config['use_flash_notifications']) {
             $this->sessionNeeded = true;
             $loader->load('flash_notifications.xml');
@@ -125,24 +134,21 @@ class FOSUserExtension extends Extension
             $this->loadResetting($config['resetting'], $container, $loader, $config['from_email']);
         }
 
-        if (!empty($config['group'])) {
-            $this->loadGroups($config['group'], $container, $loader, $config['db_driver']);
+        if ($this->mailerNeeded && null === $config['service']['mailer']) {
+            throw new \LogicException('Configuring the mailer service for FOSUserBundle is mandatory when enabling features that need the mailer.');
         }
 
-        if ($this->mailerNeeded) {
+        if (null !== $config['service']['mailer']) {
             $container->setAlias('fos_user.mailer', $config['service']['mailer']);
+            $container->setAlias(MailerInterface::class, new Alias('fos_user.mailer', false));
         }
 
         if ($this->sessionNeeded) {
-            // Use a private alias rather than a parameter, to avoid leaking it at runtime (the private alias will be removed)
-            $container->setAlias('fos_user.session', new Alias('session', false));
+            $container->setParameter('fos_user.session_needed', true);
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getNamespace()
+    public function getNamespace(): string
     {
         return 'http://friendsofsymfony.github.io/schema/dic/user';
     }
@@ -237,31 +243,6 @@ class FOSUserExtension extends Extension
             ],
             'email' => 'fos_user.resetting.email.%s',
             'form' => 'fos_user.resetting.form.%s',
-        ]);
-    }
-
-    /**
-     * @param string $dbDriver
-     */
-    private function loadGroups(array $config, ContainerBuilder $container, XmlFileLoader $loader, $dbDriver)
-    {
-        $loader->load('group.xml');
-        if ('custom' !== $dbDriver) {
-            if (isset(self::$doctrineDrivers[$dbDriver])) {
-                $loader->load('doctrine_group.xml');
-            } else {
-                $loader->load(sprintf('%s_group.xml', $dbDriver));
-            }
-        }
-
-        $container->setAlias('fos_user.group_manager', new Alias($config['group_manager'], true));
-        $container->setAlias('FOS\UserBundle\Model\GroupManagerInterface', new Alias('fos_user.group_manager', false));
-
-        $this->remapParametersNamespaces($config, $container, [
-            '' => [
-                'group_class' => 'fos_user.model.group.class',
-            ],
-            'form' => 'fos_user.group.form.%s',
         ]);
     }
 }

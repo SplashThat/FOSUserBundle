@@ -11,30 +11,29 @@
 
 namespace FOS\UserBundle\DependencyInjection\Compiler;
 
+use FOS\UserBundle\Util\PasswordUpdater;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
- * Injects firewall's UserChecker into LoginManager.
- *
- * @author Gocha Ossinkine <ossinkine@ya.ru>
- *
  * @internal
- * @final
  */
-class InjectUserCheckerPass implements CompilerPassInterface
+final class ConfigurePasswordHasherPass implements CompilerPassInterface
 {
     /**
      * {@inheritdoc}
      */
     public function process(ContainerBuilder $container)
     {
-        $firewallName = $container->getParameter('fos_user.firewall_name');
-        $loginManager = $container->findDefinition('fos_user.security.login_manager');
-
-        if ($container->has('security.user_checker.'.$firewallName)) {
-            $loginManager->replaceArgument(1, new Reference('security.user_checker.'.$firewallName));
+        if ($container->has('security.password_hasher_factory')) {
+            return;
         }
+
+        // If we don't have the new service for password-hasher, use the old implementation based on the EncoderFactoryInterface
+        $def = $container->getDefinition('fos_user.util.password_updater');
+
+        $def->setClass(PasswordUpdater::class);
+        $def->setArgument(0, new Reference('security.encoder_factory'));
     }
 }
