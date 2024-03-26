@@ -32,7 +32,7 @@ class CreateUserCommandTest extends TestCase
         ]);
 
         $this->assertSame(0, $exitCode, 'Returns 0 in case of success');
-        $this->assertRegExp('/Created user user/', $commandTester->getDisplay());
+        $this->assertMatchesRegularExpression('/Created user user/', $commandTester->getDisplay());
     }
 
     public function testExecuteInteractiveWithQuestionHelper()
@@ -43,17 +43,9 @@ class CreateUserCommandTest extends TestCase
             ->setMethods(['ask'])
             ->getMock();
 
-        $helper->expects($this->at(0))
+        $helper->expects($this->exactly(3))
             ->method('ask')
-            ->will($this->returnValue('user'));
-
-        $helper->expects($this->at(1))
-            ->method('ask')
-            ->will($this->returnValue('email'));
-
-        $helper->expects($this->at(2))
-            ->method('ask')
-            ->will($this->returnValue('pass'));
+            ->willReturnOnConsecutiveCalls('user', 'email', 'pass');
 
         $application->getHelperSet()->set($helper, 'question');
 
@@ -66,7 +58,7 @@ class CreateUserCommandTest extends TestCase
         ]);
 
         $this->assertSame(0, $exitCode, 'Returns 0 in case of success');
-        $this->assertRegExp('/Created user user/', $commandTester->getDisplay());
+        $this->assertMatchesRegularExpression('/Created user user/', $commandTester->getDisplay());
     }
 
     /**
@@ -87,16 +79,7 @@ class CreateUserCommandTest extends TestCase
         return new CommandTester($application->find('fos:user:create'));
     }
 
-    /**
-     * @param $username
-     * @param $password
-     * @param $email
-     * @param $active
-     * @param $superadmin
-     *
-     * @return mixed
-     */
-    private function getManipulator($username, $password, $email, $active, $superadmin)
+    private function getManipulator(string $username, string $password, string $email, bool $active, bool $superadmin): UserManipulator
     {
         $manipulator = $this->getMockBuilder('FOS\UserBundle\Util\UserManipulator')
             ->disableOriginalConstructor()

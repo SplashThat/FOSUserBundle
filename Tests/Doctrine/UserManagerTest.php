@@ -11,13 +11,16 @@
 
 namespace FOS\UserBundle\Tests\Doctrine;
 
+use Doctrine\Persistence\Mapping\ClassMetadata;
+use Doctrine\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectRepository;
 use FOS\UserBundle\Doctrine\UserManager;
 use FOS\UserBundle\Model\User;
 use PHPUnit\Framework\TestCase;
 
 class UserManagerTest extends TestCase
 {
-    const USER_CLASS = 'FOS\UserBundle\Tests\Doctrine\DummyUser';
+    public const USER_CLASS = 'FOS\UserBundle\Tests\Doctrine\DummyUser';
 
     /** @var UserManager */
     protected $userManager;
@@ -26,19 +29,19 @@ class UserManagerTest extends TestCase
     /** @var \PHPUnit_Framework_MockObject_MockObject */
     protected $repository;
 
-    public function setUp()
+    protected function setUp(): void
     {
-        if (!interface_exists('Doctrine\Common\Persistence\ObjectManager')) {
-            $this->markTestSkipped('Doctrine Common has to be installed for this test to run.');
+        if (!interface_exists(ObjectManager::class)) {
+            $this->markTestSkipped('"doctrine/persistence" ^1.3 has to be installed for this test to run.');
         }
 
         $passwordUpdater = $this->getMockBuilder('FOS\UserBundle\Util\PasswordUpdaterInterface')->getMock();
         $fieldsUpdater = $this->getMockBuilder('FOS\UserBundle\Util\CanonicalFieldsUpdater')
             ->disableOriginalConstructor()
             ->getMock();
-        $class = $this->getMockBuilder('Doctrine\Common\Persistence\Mapping\ClassMetadata')->getMock();
-        $this->om = $this->getMockBuilder('Doctrine\Common\Persistence\ObjectManager')->getMock();
-        $this->repository = $this->getMockBuilder('Doctrine\Common\Persistence\ObjectRepository')->getMock();
+        $class = $this->getMockBuilder(ClassMetadata::class)->getMock();
+        $this->om = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $this->repository = $this->getMockBuilder(ObjectRepository::class)->getMock();
 
         $this->om->expects($this->any())
             ->method('getRepository')

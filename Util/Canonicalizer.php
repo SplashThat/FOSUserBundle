@@ -13,13 +13,10 @@ namespace FOS\UserBundle\Util;
 
 class Canonicalizer implements CanonicalizerInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function canonicalize($string)
     {
         if (null === $string) {
-            return;
+            return null;
         }
 
         $encoding = mb_detect_encoding($string);

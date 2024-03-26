@@ -19,14 +19,22 @@ use FOS\UserBundle\Model\UserInterface;
  * and allows to use this bundle without swiftmailer.
  *
  * @author Thibault Duplessis <thibault.duplessis@gmail.com>
+ *
+ * @final
  */
 class NoopMailer implements MailerInterface
 {
+    /**
+     * @return void
+     */
     public function sendConfirmationEmailMessage(UserInterface $user)
     {
         // nothing happens.
     }
 
+    /**
+     * @return void
+     */
     public function sendResettingEmailMessage(UserInterface $user)
     {
         // nothing happens.

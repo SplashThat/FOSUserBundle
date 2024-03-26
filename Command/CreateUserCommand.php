@@ -12,6 +12,7 @@
 namespace FOS\UserBundle\Command;
 
 use FOS\UserBundle\Util\UserManipulator;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,9 +24,15 @@ use Symfony\Component\Console\Question\Question;
  * @author Matthieu Bontemps <matthieu@knplabs.com>
  * @author Thibault Duplessis <thibault.duplessis@gmail.com>
  * @author Luis Cordova <cordoval@gmail.com>
+ *
+ * @internal
+ *
+ * @final
  */
+#[AsCommand(name: 'fos:user:create', description: 'Create a user.')]
 class CreateUserCommand extends Command
 {
+    // BC with Symfony <5.3
     protected static $defaultName = 'fos:user:create';
 
     private $userManipulator;
@@ -37,12 +44,10 @@ class CreateUserCommand extends Command
         $this->userManipulator = $userManipulator;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function configure()
+    protected function configure(): void
     {
         $this
+            // BC with Symfony <5.3
             ->setName('fos:user:create')
             ->setDescription('Create a user.')
             ->setDefinition([
@@ -75,10 +80,7 @@ EOT
             );
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $username = $input->getArgument('username');
         $email = $input->getArgument('email');
@@ -93,10 +95,7 @@ EOT
         return 0;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function interact(InputInterface $input, OutputInterface $output)
+    protected function interact(InputInterface $input, OutputInterface $output): void
     {
         $questions = [];
 

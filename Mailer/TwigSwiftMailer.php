@@ -49,7 +49,7 @@ class TwigSwiftMailer implements MailerInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function sendConfirmationEmailMessage(UserInterface $user)
     {
@@ -65,7 +65,7 @@ class TwigSwiftMailer implements MailerInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function sendResettingEmailMessage(UserInterface $user)
     {
@@ -85,6 +85,8 @@ class TwigSwiftMailer implements MailerInterface
      * @param array  $context
      * @param array  $fromEmail
      * @param string $toEmail
+     *
+     * @return void
      */
     protected function sendMessage($templateName, $context, $fromEmail, $toEmail)
     {

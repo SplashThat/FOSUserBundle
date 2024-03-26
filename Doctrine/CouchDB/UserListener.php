@@ -18,6 +18,11 @@ use FOS\UserBundle\Model\UserInterface;
 use FOS\UserBundle\Util\CanonicalFieldsUpdater;
 use FOS\UserBundle\Util\PasswordUpdaterInterface;
 
+/**
+ * @internal
+ *
+ * @final
+ */
 class UserListener implements EventSubscriber
 {
     private $passwordUpdater;
@@ -29,10 +34,7 @@ class UserListener implements EventSubscriber
         $this->canonicalFieldsUpdater = $canonicalFieldsUpdater;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getSubscribedEvents()
+    public function getSubscribedEvents(): array
     {
         return [
             Event::prePersist,
@@ -40,7 +42,7 @@ class UserListener implements EventSubscriber
         ];
     }
 
-    public function prePersist(LifecycleEventArgs $args)
+    public function prePersist(LifecycleEventArgs $args): void
     {
         $object = $args->getDocument();
         if ($object instanceof UserInterface) {
@@ -48,7 +50,7 @@ class UserListener implements EventSubscriber
         }
     }
 
-    public function preUpdate(LifecycleEventArgs $args)
+    public function preUpdate(LifecycleEventArgs $args): void
     {
         $object = $args->getDocument();
         if ($object instanceof UserInterface) {
@@ -59,7 +61,7 @@ class UserListener implements EventSubscriber
     /**
      * Updates the user properties.
      */
-    private function updateUserFields(UserInterface $user)
+    private function updateUserFields(UserInterface $user): void
     {
         $this->canonicalFieldsUpdater->updateCanonicalFields($user);
         $this->passwordUpdater->hashPassword($user);

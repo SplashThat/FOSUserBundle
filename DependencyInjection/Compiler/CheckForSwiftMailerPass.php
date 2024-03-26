@@ -19,13 +19,14 @@ use Symfony\Flex\Recipe;
  * Checks to see if the mailer service exists.
  *
  * @author Ryan Weaver <ryan@knpuniversity.com>
+ *
+ * @internal
+ *
+ * @final
  */
-class CheckForMailerPass implements CompilerPassInterface
+class CheckForSwiftMailerPass implements CompilerPassInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         // if the mailer isn't needed, then no error needed
         if (!$container->has('fos_user.mailer')) {
@@ -33,7 +34,7 @@ class CheckForMailerPass implements CompilerPassInterface
         }
 
         // the mailer exists, so all is good
-        if ($container->has('mailer')) {
+        if ($container->has('swiftmailer.mailer')) {
             return;
         }
 

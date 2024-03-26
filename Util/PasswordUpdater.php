@@ -12,7 +12,6 @@
 namespace FOS\UserBundle\Util;
 
 use FOS\UserBundle\Model\UserInterface;
-use Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Encoder\SelfSaltingEncoderInterface;
 
@@ -30,24 +29,27 @@ class PasswordUpdater implements PasswordUpdaterInterface
         $this->encoderFactory = $encoderFactory;
     }
 
+    /**
+     * @return void
+     */
     public function hashPassword(UserInterface $user)
     {
         $plainPassword = $user->getPlainPassword();
 
-        if (0 === strlen($plainPassword)) {
+        if (null === $plainPassword || '' === $plainPassword) {
             return;
         }
 
         $encoder = $this->encoderFactory->getEncoder($user);
 
-        if ($encoder instanceof BCryptPasswordEncoder || $encoder instanceof SelfSaltingEncoderInterface) {
-            $user->setSalt(null);
+        if ($encoder instanceof SelfSaltingEncoderInterface) {
+            $salt = null;
         } else {
             $salt = rtrim(str_replace('+', '.', base64_encode(random_bytes(32))), '=');
-            $user->setSalt($salt);
         }
+        $user->setSalt($salt);
 
-        $hashedPassword = $encoder->encodePassword($plainPassword, $user->getSalt());
+        $hashedPassword = $encoder->encodePassword($plainPassword, $salt);
         $user->setPassword($hashedPassword);
         $user->eraseCredentials();
     }

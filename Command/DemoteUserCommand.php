@@ -12,24 +12,29 @@
 namespace FOS\UserBundle\Command;
 
 use FOS\UserBundle\Util\UserManipulator;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * @author Antoine Hérault <antoine.herault@gmail.com>
  * @author Lenar Lõhmus <lenar@city.ee>
+ *
+ * @internal
+ *
+ * @final
  */
+#[AsCommand(name: 'fos:user:demote', description: 'Demote a user by removing a role')]
 class DemoteUserCommand extends RoleCommand
 {
+    // BC with Symfony <5.3
     protected static $defaultName = 'fos:user:demote';
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function configure()
+    protected function configure(): void
     {
         parent::configure();
 
         $this
+            // BC with Symfony <5.3
             ->setName('fos:user:demote')
             ->setDescription('Demote a user by removing a role')
             ->setHelp(<<<'EOT'
@@ -41,10 +46,7 @@ EOT
             );
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function executeRoleCommand(UserManipulator $manipulator, OutputInterface $output, $username, $super, $role)
+    protected function executeRoleCommand(UserManipulator $manipulator, OutputInterface $output, $username, $super, $role): void
     {
         if ($super) {
             $manipulator->demote($username);

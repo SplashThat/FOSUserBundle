@@ -11,11 +11,8 @@
 
 namespace FOS\UserBundle\Security;
 
-use Symfony\Component\Security\Core\Exception\AccountExpiredException;
-use Symfony\Component\Security\Core\Exception\CredentialsExpiredException;
 use Symfony\Component\Security\Core\Exception\DisabledException;
-use Symfony\Component\Security\Core\Exception\LockedException;
-use Symfony\Component\Security\Core\User\UserChecker as BaseUserChecker;
+use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface as BaseUserInterface;
 
 /**
@@ -23,41 +20,24 @@ use Symfony\Component\Security\Core\User\UserInterface as BaseUserInterface;
  *
  * @author Julian Finkler (Devtronic) <julian@developer-heaven.de>
  */
-class UserChecker extends BaseUserChecker
+class UserChecker implements UserCheckerInterface
 {
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function checkPreAuth(BaseUserInterface $user)
     {
-        if (!$user->isAccountNonLocked()) {
-            $ex = new LockedException('User account is locked.');
-            $ex->setUser($user);
-            throw $ex;
-        }
-
         if (!$user->isEnabled()) {
             $ex = new DisabledException('User account is disabled.');
-            $ex->setUser($user);
-            throw $ex;
-        }
-
-        if (!$user->isAccountNonExpired()) {
-            $ex = new AccountExpiredException('User account has expired.');
             $ex->setUser($user);
             throw $ex;
         }
     }
 
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function checkPostAuth(BaseUserInterface $user)
     {
-        if (!$user->isCredentialsNonExpired()) {
-            $ex = new CredentialsExpiredException('User credentials have expired.');
-            $ex->setUser($user);
-            throw $ex;
-        }
     }
 }

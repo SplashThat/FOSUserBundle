@@ -19,6 +19,11 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Http\SecurityEvents;
 
+/**
+ * @internal
+ *
+ * @final
+ */
 class LastLoginListener implements EventSubscriberInterface
 {
     protected $userManager;
@@ -31,10 +36,7 @@ class LastLoginListener implements EventSubscriberInterface
         $this->userManager = $userManager;
     }
 
-    /**
-     * @return array
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             FOSUserEvents::SECURITY_IMPLICIT_LOGIN => 'onImplicitLogin',

@@ -13,9 +13,10 @@ namespace FOS\UserBundle\Tests\Mailer;
 
 use FOS\UserBundle\Mailer\TwigSwiftMailer;
 use PHPUnit\Framework\TestCase;
-use Swift_Mailer;
-use Swift_Transport_NullTransport;
 
+/**
+ * @group legacy
+ */
 class TwigSwiftMailerTest extends TestCase
 {
     /**
@@ -31,10 +32,11 @@ class TwigSwiftMailerTest extends TestCase
 
     /**
      * @dataProvider badEmailProvider
-     * @expectedException \Swift_RfcComplianceException
      */
     public function testSendConfirmationEmailMessageWithBadEmails($emailAddress)
     {
+        $this->expectException(\Swift_RfcComplianceException::class);
+
         $mailer = $this->getTwigSwiftMailer();
         $mailer->sendConfirmationEmailMessage($this->getUser($emailAddress));
     }
@@ -52,10 +54,11 @@ class TwigSwiftMailerTest extends TestCase
 
     /**
      * @dataProvider badEmailProvider
-     * @expectedException \Swift_RfcComplianceException
      */
     public function testSendResettingEmailMessageWithBadEmails($emailAddress)
     {
+        $this->expectException(\Swift_RfcComplianceException::class);
+
         $mailer = $this->getTwigSwiftMailer();
         $mailer->sendResettingEmailMessage($this->getUser($emailAddress));
     }
@@ -81,8 +84,8 @@ class TwigSwiftMailerTest extends TestCase
     private function getTwigSwiftMailer()
     {
         return new TwigSwiftMailer(
-            new Swift_Mailer(
-                new Swift_Transport_NullTransport(
+            new \Swift_Mailer(
+                new \Swift_Transport_NullTransport(
                     $this->getMockBuilder('Swift_Events_EventDispatcher')->getMock()
                 )
             ),

@@ -18,13 +18,14 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  * Registers the additional validators according to the storage.
  *
  * @author Christophe Coevoet <stof@notk.org>
+ *
+ * @internal
+ *
+ * @final
  */
 class ValidationPass implements CompilerPassInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         if (!$container->hasParameter('fos_user.storage')) {
             return;

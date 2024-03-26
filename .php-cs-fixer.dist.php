@@ -9,7 +9,7 @@ For the full copyright and license information, please view the LICENSE
 file that was distributed with this source code.
 EOF;
 
-return PhpCsFixer\Config::create()
+return (new PhpCsFixer\Config())
     ->setRules([
         '@Symfony' => true,
         'array_syntax' => ['syntax' => 'short'],
@@ -23,6 +23,10 @@ return PhpCsFixer\Config::create()
         'php_unit_construct' => true,
         'php_unit_strict' => true,
         'phpdoc_no_empty_return' => false,
+        'no_superfluous_phpdoc_tags' => [
+            'remove_inheritdoc' => true,
+            'allow_mixed' => true,
+        ],
     ])
     ->setUsingCache(true)
     ->setRiskyAllowed(true)

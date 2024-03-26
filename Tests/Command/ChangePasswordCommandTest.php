@@ -31,7 +31,7 @@ class ChangePasswordCommandTest extends TestCase
         ]);
 
         $this->assertSame(0, $exitCode, 'Returns 0 in case of success');
-        $this->assertRegExp('/Changed password for user user/', $commandTester->getDisplay());
+        $this->assertMatchesRegularExpression('/Changed password for user user/', $commandTester->getDisplay());
     }
 
     public function testExecuteInteractiveWithQuestionHelper()
@@ -42,12 +42,9 @@ class ChangePasswordCommandTest extends TestCase
             ->setMethods(['ask'])
             ->getMock();
 
-        $helper->expects($this->at(0))
+        $helper->expects($this->exactly(2))
             ->method('ask')
-            ->will($this->returnValue('user'));
-        $helper->expects($this->at(1))
-            ->method('ask')
-            ->will($this->returnValue('pass'));
+            ->willReturnOnConsecutiveCalls('user', 'pass');
 
         $application->getHelperSet()->set($helper, 'question');
 
@@ -58,12 +55,10 @@ class ChangePasswordCommandTest extends TestCase
         ]);
 
         $this->assertSame(0, $exitCode, 'Returns 0 in case of success');
-        $this->assertRegExp('/Changed password for user user/', $commandTester->getDisplay());
+        $this->assertMatchesRegularExpression('/Changed password for user user/', $commandTester->getDisplay());
     }
 
     /**
-     * @param UserManipulator $container
-     *
      * @return CommandTester
      */
     private function createCommandTester(UserManipulator $userManipulator, Application $application = null)
@@ -82,9 +77,6 @@ class ChangePasswordCommandTest extends TestCase
     }
 
     /**
-     * @param $username
-     * @param $password
-     *
      * @return mixed
      */
     private function getManipulator($username, $password)

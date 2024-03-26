@@ -18,6 +18,11 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+/**
+ * @internal
+ *
+ * @final
+ */
 class ResettingListener implements EventSubscriberInterface
 {
     /**
@@ -41,15 +46,11 @@ class ResettingListener implements EventSubscriberInterface
         $this->tokenTtl = $tokenTtl;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             FOSUserEvents::RESETTING_RESET_INITIALIZE => 'onResettingResetInitialize',
             FOSUserEvents::RESETTING_RESET_SUCCESS => 'onResettingResetSuccess',
-            FOSUserEvents::RESETTING_RESET_REQUEST => 'onResettingResetRequest',
         ];
     }
 
@@ -68,12 +69,5 @@ class ResettingListener implements EventSubscriberInterface
         $user->setConfirmationToken(null);
         $user->setPasswordRequestedAt(null);
         $user->setEnabled(true);
-    }
-
-    public function onResettingResetRequest(GetResponseUserEvent $event)
-    {
-        if (!$event->getUser()->isAccountNonLocked()) {
-            $event->setResponse(new RedirectResponse($this->router->generate('fos_user_resetting_request')));
-        }
     }
 }

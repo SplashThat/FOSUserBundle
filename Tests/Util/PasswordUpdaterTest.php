@@ -13,19 +13,28 @@ namespace FOS\UserBundle\Tests\Util;
 
 use FOS\UserBundle\Tests\TestUser;
 use FOS\UserBundle\Util\PasswordUpdater;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 
+/**
+ * @group legacy
+ */
 class PasswordUpdaterTest extends TestCase
 {
     /**
-     * @var PasswordUpdater
+     * @var PasswordUpdater&MockObject
      */
     private $updater;
     private $encoderFactory;
 
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->encoderFactory = $this->getMockBuilder('Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface')->getMock();
+        if (!interface_exists(EncoderFactoryInterface::class)) {
+            $this->markTestSkipped('The PasswordUpdater class does not support Symfony 6+.');
+        }
+
+        $this->encoderFactory = $this->getMockBuilder(EncoderFactoryInterface::class)->getMock();
 
         $this->updater = new PasswordUpdater($this->encoderFactory);
     }
@@ -54,6 +63,10 @@ class PasswordUpdaterTest extends TestCase
 
     public function testUpdatePasswordWithBCrypt()
     {
+        if (!class_exists('Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder')) {
+            $this->markTestSkipped('This test requires Symfony 4');
+        }
+
         $encoder = $this->getMockBuilder('Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder')
             ->disableOriginalConstructor()
             ->getMock();
@@ -77,12 +90,23 @@ class PasswordUpdaterTest extends TestCase
         $this->assertNull($user->getPlainPassword(), '->updatePassword() erases credentials');
     }
 
-    public function testDoesNotUpdateWithoutPlainPassword()
+    public function testDoesNotUpdateWithEmptyPlainPassword()
     {
         $user = new TestUser();
         $user->setPassword('hash');
 
         $user->setPlainPassword('');
+
+        $this->updater->hashPassword($user);
+        $this->assertSame('hash', $user->getPassword());
+    }
+
+    public function testDoesNotUpdateWithoutPlainPassword()
+    {
+        $user = new TestUser();
+        $user->setPassword('hash');
+
+        $user->setPlainPassword(null);
 
         $this->updater->hashPassword($user);
         $this->assertSame('hash', $user->getPassword());

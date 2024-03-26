@@ -15,6 +15,7 @@ use FOS\UserBundle\Model\UserInterface;
 use FOS\UserBundle\Model\UserManagerInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
+use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface as SecurityUserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
@@ -33,24 +34,33 @@ class UserProvider implements UserProviderInterface
         $this->userManager = $userManager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function loadUserByUsername($username)
+    public function loadUserByIdentifier(string $identifier): SecurityUserInterface
+    {
+        $user = $this->findUser($identifier);
+
+        if (!$user) {
+            throw new UserNotFoundException(sprintf('Username "%s" does not exist.', $identifier));
+        }
+
+        return $user;
+    }
+
+    public function loadUserByUsername($username): SecurityUserInterface
     {
         $user = $this->findUser($username);
 
         if (!$user) {
+            if (class_exists(UserNotFoundException::class)) {
+                throw new UserNotFoundException(sprintf('Username "%s" does not exist.', $username));
+            }
+
             throw new UsernameNotFoundException(sprintf('Username "%s" does not exist.', $username));
         }
 
         return $user;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function refreshUser(SecurityUserInterface $user)
+    public function refreshUser(SecurityUserInterface $user): SecurityUserInterface
     {
         if (!$user instanceof UserInterface) {
             throw new UnsupportedUserException(sprintf('Expected an instance of FOS\UserBundle\Model\UserInterface, but got "%s".', get_class($user)));
@@ -61,16 +71,17 @@ class UserProvider implements UserProviderInterface
         }
 
         if (null === $reloadedUser = $this->userManager->findUserBy(['id' => $user->getId()])) {
+            if (class_exists(UserNotFoundException::class)) {
+                throw new UserNotFoundException(sprintf('User with ID "%s" could not be reloaded.', $user->getId()));
+            }
+
             throw new UsernameNotFoundException(sprintf('User with ID "%s" could not be reloaded.', $user->getId()));
         }
 
         return $reloadedUser;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsClass($class)
+    public function supportsClass($class): bool
     {
         $userClass = $this->userManager->getClass();
 
@@ -83,10 +94,8 @@ class UserProvider implements UserProviderInterface
      * This method is meant to be an extension point for child classes.
      *
      * @param string $username
-     *
-     * @return UserInterface|null
      */
-    protected function findUser($username)
+    protected function findUser($username): ?UserInterface
     {
         return $this->userManager->findUserByUsername($username);
     }
